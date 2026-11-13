@@ -1,0 +1,11 @@
+arena:
+  pos1: null
+  pos2: null
+  boss-spawn: null
+boss:
+  snowman-spawn-interval: 900  # seconds
+  santa-spawn-interval: 3600   # seconds
+events:
+  interval: 300  # seconds between random events
+messages:
+  prefix: "&b[❄ WinterClash] &r"
