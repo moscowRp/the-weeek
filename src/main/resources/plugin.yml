@@ -1,6 +1,17 @@
-name: the weeek
+name: WinterClash
 version: '${version}'
-
 main: tech.magoff.theweeek
 api-version: '1.21.4'
 load: POSTWORLD
+commands:
+  wc:
+    description: WinterClash main command
+    usage: /wc <subcommand>
+    permission: winterclash.admin
+permissions:
+  winterclash.admin:
+    description: Admin access
+    default: op
+  winterclash.play:
+    description: Player access
+    default: true
