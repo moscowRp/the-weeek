@@ -1,0 +1,6 @@
+name: the weeek
+version: '${version}'
+
+main: tech.magoff.theweeek
+api-version: '1.21.4'
+load: POSTWORLD
