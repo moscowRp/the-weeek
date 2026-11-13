@@ -30,7 +30,7 @@ public final class theweeek extends JavaPlugin {
         eventManager = new EventManager(this, bossManager);
 
         // Регистрация команд
-        WCCommand commandExecutor = new WCCommand(this, eventManager);
+        WCCommand commandExecutor = new WCCommand(this, eventManager, bossManager);
         Objects.requireNonNull(getCommand("wc")).setExecutor(commandExecutor);
         Objects.requireNonNull(getCommand("wc")).setTabCompleter(commandExecutor);
 
@@ -62,6 +62,10 @@ public final class theweeek extends JavaPlugin {
 
         if (eventManager != null) {
             eventManager.shutdown();
+        }
+
+        if (bossManager != null) {
+            bossManager.cleanupAll();
         }
 
         getLogger().info("WinterClash выключен!");

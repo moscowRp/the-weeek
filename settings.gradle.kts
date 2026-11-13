@@ -1,1 +1,1 @@
-rootProject.name = "the weeek"
+rootProject.name = "WinterClash"

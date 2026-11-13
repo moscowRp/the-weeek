@@ -1,5 +1,6 @@
 package tech.magoff.boss;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -19,12 +20,19 @@ public class FrostGolem {
 
     private final theweeek plugin;
     private final IronGolem entity;
+    private final BossBar bossBar;
     private BukkitRunnable abilityTask;
     private boolean phaseTriggered = false;
 
     public FrostGolem(theweeek plugin, IronGolem entity) {
         this.plugin = plugin;
         this.entity = entity;
+        this.bossBar = BossBar.bossBar(
+                Component.text("❄ Ледяной Голем", NamedTextColor.AQUA).decorate(TextDecoration.BOLD),
+                1.0f,
+                BossBar.Color.BLUE,
+                BossBar.Overlay.NOTCHED_10
+        );
     }
 
     public static FrostGolem spawn(Location location) {
@@ -64,11 +72,15 @@ public class FrostGolem {
             @Override
             public void run() {
                 if (entity.isDead() || !entity.isValid()) {
+                    cleanup();
                     cancel();
                     return;
                 }
 
                 tick++;
+
+                // Обновление BossBar
+                updateBossBar();
 
                 // Таргетить ближайшего игрока
                 if (tick % 2 == 0) {
@@ -92,7 +104,28 @@ public class FrostGolem {
                 }
             }
         };
-        abilityTask.runTaskTimer(plugin, 20L, 20L); // каждую секунду
+        abilityTask.runTaskTimer(plugin, 20L, 20L);
+    }
+
+    private void updateBossBar() {
+        double maxHealth = Objects.requireNonNull(entity.getAttribute(Attribute.MAX_HEALTH)).getValue();
+        float progress = (float) Math.max(0.0, Math.min(1.0, entity.getHealth() / maxHealth));
+        bossBar.progress(progress);
+
+        int currentHp = (int) Math.ceil(entity.getHealth());
+        bossBar.name(Component.text("❄ Ледяной Голем ", NamedTextColor.AQUA)
+                .decorate(TextDecoration.BOLD)
+                .append(Component.text("[" + currentHp + "/" + (int)maxHealth + " ❤]", NamedTextColor.WHITE)));
+
+        // Показ игрокам в радиусе 60 блоков
+        Location loc = entity.getLocation();
+        for (Player p : loc.getWorld().getPlayers()) {
+            if (p.getLocation().distanceSquared(loc) <= 3600) {
+                p.showBossBar(bossBar);
+            } else {
+                p.hideBossBar(bossBar);
+            }
+        }
     }
 
     private void retarget() {
@@ -118,7 +151,6 @@ public class FrostGolem {
             p.sendMessage(Component.text("❄ Ледяной Голем вызывает Морозный Шторм!", NamedTextColor.AQUA));
         }
 
-        // Кольцо снежков
         for (int angle = 0; angle < 360; angle += 15) {
             double rad = Math.toRadians(angle);
             Vector direction = new Vector(Math.cos(rad), 0.3, Math.sin(rad)).normalize().multiply(1.5);
@@ -157,7 +189,6 @@ public class FrostGolem {
             p.sendMessage(Component.text("❄ Ледяной Голем активирует Ледяной Щит!", NamedTextColor.RED));
         }
 
-        // Спавн мини-големов
         for (int i = 0; i < 4; i++) {
             Location spawnLoc = loc.clone().add(
                     (Math.random() - 0.5) * 6, 0, (Math.random() - 0.5) * 6
@@ -178,6 +209,9 @@ public class FrostGolem {
     public void cleanup() {
         if (abilityTask != null && !abilityTask.isCancelled()) {
             abilityTask.cancel();
+        }
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.hideBossBar(bossBar);
         }
         if (!entity.isDead() && entity.isValid()) {
             entity.remove();

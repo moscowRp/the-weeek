@@ -1,5 +1,6 @@
 package tech.magoff.boss;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -20,6 +21,7 @@ public class DarkSanta {
 
     private final theweeek plugin;
     private final Evoker entity;
+    private final BossBar bossBar;
     private BukkitRunnable abilityTask;
     private final List<ArmorStand> trapGifts = new ArrayList<>();
 
@@ -34,6 +36,12 @@ public class DarkSanta {
     public DarkSanta(theweeek plugin, Evoker entity) {
         this.plugin = plugin;
         this.entity = entity;
+        this.bossBar = BossBar.bossBar(
+                Component.text("🎅 Тёмный Санта", NamedTextColor.RED).decorate(TextDecoration.BOLD),
+                1.0f,
+                BossBar.Color.RED,
+                BossBar.Overlay.NOTCHED_10
+        );
     }
 
     public static DarkSanta spawn(Location location) {
@@ -48,7 +56,6 @@ public class DarkSanta {
             e.setHealth(400);
             Objects.requireNonNull(e.getAttribute(Attribute.MOVEMENT_SPEED)).setBaseValue(0.35);
 
-            // Красная кожаная броня
             ItemStack helmet = createColoredArmor(Material.LEATHER_HELMET, Color.RED);
             ItemStack chestplate = createColoredArmor(Material.LEATHER_CHESTPLATE, Color.RED);
             ItemStack leggings = createColoredArmor(Material.LEATHER_LEGGINGS, Color.RED);
@@ -96,11 +103,15 @@ public class DarkSanta {
             public void run() {
                 if (entity.isDead() || !entity.isValid()) {
                     cleanupGifts();
+                    cleanup();
                     cancel();
                     return;
                 }
 
                 tick++;
+
+                // Обновление BossBar
+                updateBossBar();
 
                 // Таргетить ближайшего игрока
                 if (tick % 2 == 0) {
@@ -129,6 +140,26 @@ public class DarkSanta {
         abilityTask.runTaskTimer(plugin, 20L, 20L);
     }
 
+    private void updateBossBar() {
+        double maxHealth = Objects.requireNonNull(entity.getAttribute(Attribute.MAX_HEALTH)).getValue();
+        float progress = (float) Math.max(0.0, Math.min(1.0, entity.getHealth() / maxHealth));
+        bossBar.progress(progress);
+
+        int currentHp = (int) Math.ceil(entity.getHealth());
+        bossBar.name(Component.text("🎅 Тёмный Санта ", NamedTextColor.RED)
+                .decorate(TextDecoration.BOLD)
+                .append(Component.text("[" + currentHp + "/" + (int)maxHealth + " ❤]", NamedTextColor.WHITE)));
+
+        Location loc = entity.getLocation();
+        for (Player p : loc.getWorld().getPlayers()) {
+            if (p.getLocation().distanceSquared(loc) <= 3600) {
+                p.showBossBar(bossBar);
+            } else {
+                p.hideBossBar(bossBar);
+            }
+        }
+    }
+
     private void retarget() {
         Player nearest = null;
         double minDist = Double.MAX_VALUE;
@@ -148,7 +179,6 @@ public class DarkSanta {
         Location loc = entity.getLocation();
         World world = loc.getWorld();
 
-        // Бросить "подарок" в случайную точку рядом
         Location giftLoc = loc.clone().add(
                 (Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10
         );
@@ -188,9 +218,8 @@ public class DarkSanta {
 
             Location giftLoc = gift.getLocation();
             for (Player p : giftLoc.getWorld().getNearbyPlayers(giftLoc, 3)) {
-                // Взрыв!
                 giftLoc.getWorld().createExplosion(giftLoc, 3f, false, false);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1)); // 5 сек
+                p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
                 p.damage(8.0, entity);
                 gift.remove();
                 it.remove();
@@ -204,7 +233,7 @@ public class DarkSanta {
     private void summonElves() {
         Location loc = entity.getLocation();
         World world = loc.getWorld();
-        int count = 3 + new Random().nextInt(3); // 3-5
+        int count = 3 + new Random().nextInt(3);
 
         for (Player p : world.getNearbyPlayers(loc, 30)) {
             p.sendMessage(Component.text("🎅 Тёмный Санта призывает Эльфов!", NamedTextColor.RED));
@@ -216,11 +245,8 @@ public class DarkSanta {
             ), Vex.class, vex -> {
                 vex.customName(Component.text("Злой Эльф", NamedTextColor.DARK_GREEN));
                 vex.setCustomNameVisible(true);
-
-                // Зелёный шлем
                 ItemStack greenHelmet = createColoredArmor(Material.LEATHER_HELMET, Color.GREEN);
                 vex.getEquipment().setHelmet(greenHelmet);
-
                 vex.setCharging(true);
             });
         }
@@ -237,7 +263,7 @@ public class DarkSanta {
         PotionEffectType effect = CHAOS_EFFECTS[random.nextInt(CHAOS_EFFECTS.length)];
 
         for (Player p : world.getNearbyPlayers(loc, 20)) {
-            p.addPotionEffect(new PotionEffect(effect, 60, 1)); // 3 сек
+            p.addPotionEffect(new PotionEffect(effect, 60, 1));
             p.sendMessage(Component.text("🎅 Мешок Хаоса! Вы получили: " + formatEffectName(effect), NamedTextColor.DARK_PURPLE));
         }
 
@@ -266,6 +292,9 @@ public class DarkSanta {
             abilityTask.cancel();
         }
         cleanupGifts();
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.hideBossBar(bossBar);
+        }
         if (!entity.isDead() && entity.isValid()) {
             entity.remove();
         }
