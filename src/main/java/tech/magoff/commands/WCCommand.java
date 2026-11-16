@@ -1,8 +1,6 @@
 package tech.magoff.commands;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,6 +13,7 @@ import tech.magoff.boss.BossManager;
 import tech.magoff.event.EventManager;
 import tech.magoff.loot.FrostItems;
 import tech.magoff.theweeek;
+import tech.magoff.util.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class WCCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!sender.hasPermission("winterclash.admin")) {
-            sender.sendMessage(Component.text("❌ У вас нет прав!", NamedTextColor.RED));
+            sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ff416c:#ff4b2b>❌ " + TextUtil.toSmallCaps("У вас нет прав на эту команду!") + "</gradient>"));
             return true;
         }
 
@@ -47,85 +46,85 @@ public class WCCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "start" -> {
                 if (eventManager.isEventActive()) {
-                    sender.sendMessage(Component.text("❄ Ивент уже идёт!", NamedTextColor.YELLOW));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ffd200:#f7971e>" + TextUtil.toSmallCaps("Ивент уже запущен и активен!") + "</gradient>"));
                 } else {
                     eventManager.startEvent();
-                    sender.sendMessage(Component.text("❄ Ивент «Вечная Зима» запущен!", NamedTextColor.GREEN));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#43e97b:#38f9d7>" + TextUtil.toSmallCaps("Ивент «Вечная Зима» успешно запущен!") + "</gradient>"));
                 }
             }
             case "stop" -> {
                 if (!eventManager.isEventActive()) {
-                    sender.sendMessage(Component.text("❄ Ивент не запущен.", NamedTextColor.YELLOW));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gray>" + TextUtil.toSmallCaps("В данный момент нет активных ивентов.") + "</gray>"));
                 } else {
                     eventManager.stopEvent();
-                    sender.sendMessage(Component.text("❄ Ивент остановлен.", NamedTextColor.RED));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ff416c:#ff4b2b>" + TextUtil.toSmallCaps("Ивент был принудительно остановлен.") + "</gradient>"));
                 }
             }
             case "status" -> {
                 if (eventManager.isEventActive()) {
-                    sender.sendMessage(Component.text("❄ Ивент активен. Живых боссов: " + bossManager.getActiveBossCount(), NamedTextColor.GREEN));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#43e97b:#38f9d7>" + TextUtil.toSmallCaps("Ивент АКТИВЕН.") + "</gradient> <gray>" + TextUtil.toSmallCaps("Боссов в живых:") + "</gray> <#ffd200><b>" + bossManager.getActiveBossCount() + "</b></#ffd200>"));
                 } else {
-                    sender.sendMessage(Component.text("❄ Ивент не активен.", NamedTextColor.GRAY));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gray>" + TextUtil.toSmallCaps("Ивент НЕ АКТИВЕН.") + "</gray>"));
                 }
             }
             case "reload" -> {
                 plugin.reloadConfig();
-                sender.sendMessage(Component.text("❄ Конфиг перезагружен.", NamedTextColor.GREEN));
+                sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#43e97b:#38f9d7>" + TextUtil.toSmallCaps("Конфигурация успешно перезагружена!") + "</gradient>"));
             }
             case "autotimer" -> {
                 if (args.length < 2) {
-                    sender.sendMessage(Component.text("Использование: /wc autotimer <on|off>", NamedTextColor.YELLOW));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gray>" + TextUtil.toSmallCaps("Использование:") + "</gray> <#ffd200>/wc autotimer <on|off></#ffd200>"));
                     return true;
                 }
                 if (args[1].equalsIgnoreCase("on")) {
                     eventManager.startAutoTimer();
-                    sender.sendMessage(Component.text("❄ Автотаймер включён.", NamedTextColor.GREEN));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#43e97b:#38f9d7>" + TextUtil.toSmallCaps("Автотаймер ивентов включен.") + "</gradient>"));
                 } else if (args[1].equalsIgnoreCase("off")) {
                     eventManager.stopAutoTimer();
-                    sender.sendMessage(Component.text("❄ Автотаймер выключен.", NamedTextColor.RED));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ff416c:#ff4b2b>" + TextUtil.toSmallCaps("Автотаймер ивентов выключен.") + "</gradient>"));
                 }
             }
             case "spawn" -> {
                 if (!(sender instanceof Player player)) {
-                    sender.sendMessage(Component.text("❌ Только для игроков!", NamedTextColor.RED));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<#ff4b2b>" + TextUtil.toSmallCaps("Команда доступна только игрокам в игре!") + "</#ff4b2b>"));
                     return true;
                 }
                 if (args.length < 2) {
-                    sender.sendMessage(Component.text("Использование: /wc spawn <golem|santa|queen>", NamedTextColor.YELLOW));
+                    player.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gray>" + TextUtil.toSmallCaps("Использование:") + "</gray> <#ffd200>/wc spawn <golem|santa|queen></#ffd200>"));
                     return true;
                 }
                 switch (args[1].toLowerCase()) {
                     case "golem" -> {
                         bossManager.spawnFrostGolem(player.getLocation());
-                        player.sendMessage(Component.text("❄ Ледяной Голем заспавнен!", NamedTextColor.AQUA));
+                        player.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#00f2fe:#4facfe>" + TextUtil.toSmallCaps("Ледяной Голем заспавнен рядом с вами!") + "</gradient>"));
                     }
                     case "santa" -> {
                         bossManager.spawnDarkSanta(player.getLocation());
-                        player.sendMessage(Component.text("🎅 Тёмный Санта заспавнен!", NamedTextColor.DARK_RED));
+                        player.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ff0844:#ffb199>" + TextUtil.toSmallCaps("Тёмный Санта заспавнен рядом с вами!") + "</gradient>"));
                     }
                     case "queen" -> {
                         bossManager.spawnBlizzardQueen(player.getLocation());
-                        player.sendMessage(Component.text("🌨 Королева Метели заспавнена!", NamedTextColor.BLUE));
+                        player.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#b176ff:#e0c3fc>" + TextUtil.toSmallCaps("Королева Метели заспавнена рядом с вами!") + "</gradient>"));
                     }
-                    default -> player.sendMessage(Component.text("Неизвестный босс. Доступны: golem, santa, queen", NamedTextColor.RED));
+                    default -> player.sendMessage(TextUtil.parse(TextUtil.prefix() + "<#ff4b2b>" + TextUtil.toSmallCaps("Неизвестный босс. Доступны: golem, santa, queen") + "</#ff4b2b>"));
                 }
             }
             case "give" -> {
                 if (args.length < 2) {
-                    sender.sendMessage(Component.text("Использование: /wc give <shard|heart|crown|fist|bow|bag> [игрок]", NamedTextColor.YELLOW));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gray>" + TextUtil.toSmallCaps("Использование:") + "</gray> <#ffd200>/wc give <shard|heart|crown|fist|bow|bag> [игрок]</#ffd200>"));
                     return true;
                 }
                 Player targetPlayer;
                 if (args.length >= 3) {
                     targetPlayer = Bukkit.getPlayer(args[2]);
                     if (targetPlayer == null) {
-                        sender.sendMessage(Component.text("Игрок не найден!", NamedTextColor.RED));
+                        sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<#ff4b2b>" + TextUtil.toSmallCaps("Игрок не найден в сети!") + "</#ff4b2b>"));
                         return true;
                     }
                 } else if (sender instanceof Player p) {
                     targetPlayer = p;
                 } else {
-                    sender.sendMessage(Component.text("Укажите имя игрока!", NamedTextColor.RED));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<#ff4b2b>" + TextUtil.toSmallCaps("Укажите имя игрока при вызове из консоли!") + "</#ff4b2b>"));
                     return true;
                 }
 
@@ -140,12 +139,12 @@ public class WCCommand implements CommandExecutor, TabCompleter {
                 };
 
                 if (item == null) {
-                    sender.sendMessage(Component.text("Неизвестный предмет! Доступны: shard, heart, crown, fist, bow, bag", NamedTextColor.RED));
+                    sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<#ff4b2b>" + TextUtil.toSmallCaps("Неизвестный предмет! Доступны: shard, heart, crown, fist, bow, bag") + "</#ff4b2b>"));
                     return true;
                 }
 
                 targetPlayer.getInventory().addItem(item);
-                sender.sendMessage(Component.text("Предмет выдан игроку " + targetPlayer.getName(), NamedTextColor.GREEN));
+                sender.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#43e97b:#38f9d7>" + TextUtil.toSmallCaps("Предмет успешно выдан игроку") + " <b>" + targetPlayer.getName() + "</b></gradient>"));
             }
             default -> sendHelp(sender);
         }
@@ -154,21 +153,18 @@ public class WCCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(Component.text("═══ WinterClash ═══", NamedTextColor.AQUA).decorate(TextDecoration.BOLD));
-        sender.sendMessage(Component.text("/wc start", NamedTextColor.GOLD)
-                .append(Component.text(" — Запустить ивент", NamedTextColor.GRAY)));
-        sender.sendMessage(Component.text("/wc stop", NamedTextColor.GOLD)
-                .append(Component.text(" — Остановить ивент", NamedTextColor.GRAY)));
-        sender.sendMessage(Component.text("/wc status", NamedTextColor.GOLD)
-                .append(Component.text(" — Статус ивента и боссов", NamedTextColor.GRAY)));
-        sender.sendMessage(Component.text("/wc spawn <golem|santa|queen>", NamedTextColor.GOLD)
-                .append(Component.text(" — Заспавнить босса", NamedTextColor.GRAY)));
-        sender.sendMessage(Component.text("/wc give <item> [player]", NamedTextColor.GOLD)
-                .append(Component.text(" — Выдать кастомный предмет", NamedTextColor.GRAY)));
-        sender.sendMessage(Component.text("/wc autotimer <on|off>", NamedTextColor.GOLD)
-                .append(Component.text(" — Автозапуск ивентов", NamedTextColor.GRAY)));
-        sender.sendMessage(Component.text("/wc reload", NamedTextColor.GOLD)
-                .append(Component.text(" — Перезагрузить конфиг", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(TextUtil.parse("<dark_gray>╭────────────────────────────────────────╮</dark_gray>"));
+        sender.sendMessage(TextUtil.parse("   <gradient:#00f2fe:#4facfe><b>❄ ᴡɪɴᴛᴇʀᴄʟᴀꜱʜ • ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ</b></gradient>"));
+        sender.sendMessage(TextUtil.parse("   <#00f2fe>/wc start</#00f2fe> <dark_gray>—</dark_gray> <gray>" + TextUtil.toSmallCaps("Запустить глобальный ивент") + "</gray>"));
+        sender.sendMessage(TextUtil.parse("   <#00f2fe>/wc stop</#00f2fe> <dark_gray>—</dark_gray> <gray>" + TextUtil.toSmallCaps("Остановить активный ивент") + "</gray>"));
+        sender.sendMessage(TextUtil.parse("   <#00f2fe>/wc status</#00f2fe> <dark_gray>—</dark_gray> <gray>" + TextUtil.toSmallCaps("Статус ивента и живых боссов") + "</gray>"));
+        sender.sendMessage(TextUtil.parse("   <#00f2fe>/wc spawn <golem|santa|queen></#00f2fe> <dark_gray>—</dark_gray> <gray>" + TextUtil.toSmallCaps("Призвать босса") + "</gray>"));
+        sender.sendMessage(TextUtil.parse("   <#00f2fe>/wc give <item> [ник]</#00f2fe> <dark_gray>—</dark_gray> <gray>" + TextUtil.toSmallCaps("Выдать кастомный предмет") + "</gray>"));
+        sender.sendMessage(TextUtil.parse("   <#00f2fe>/wc autotimer <on|off></#00f2fe> <dark_gray>—</dark_gray> <gray>" + TextUtil.toSmallCaps("Управление авто-таймером") + "</gray>"));
+        sender.sendMessage(TextUtil.parse("   <#00f2fe>/wc reload</#00f2fe> <dark_gray>—</dark_gray> <gray>" + TextUtil.toSmallCaps("Перезагрузить config.yml") + "</gray>"));
+        sender.sendMessage(TextUtil.parse("<dark_gray>╰────────────────────────────────────────╯</dark_gray>"));
+        sender.sendMessage(Component.empty());
     }
 
     @Override

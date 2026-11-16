@@ -2,8 +2,6 @@ package tech.magoff.boss;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
@@ -13,6 +11,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import tech.magoff.theweeek;
+import tech.magoff.util.TextUtil;
 
 import java.util.Objects;
 
@@ -28,7 +27,7 @@ public class FrostGolem {
         this.plugin = plugin;
         this.entity = entity;
         this.bossBar = BossBar.bossBar(
-                Component.text("❄ Ледяной Голем", NamedTextColor.AQUA).decorate(TextDecoration.BOLD),
+                TextUtil.parse("<gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("Ледяной Голем") + "</b></gradient>"),
                 1.0f,
                 BossBar.Color.BLUE,
                 BossBar.Overlay.NOTCHED_10
@@ -40,7 +39,7 @@ public class FrostGolem {
         World world = location.getWorld();
 
         IronGolem golem = world.spawn(location, IronGolem.class, e -> {
-            e.customName(Component.text("❄ Ледяной Голем", NamedTextColor.AQUA).decorate(TextDecoration.BOLD));
+            e.customName(TextUtil.parse("<gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("Ледяной Голем") + "</b></gradient>"));
             e.setCustomNameVisible(true);
             e.setPlayerCreated(false);
 
@@ -78,26 +77,20 @@ public class FrostGolem {
                 }
 
                 tick++;
-
-                // Обновление BossBar
                 updateBossBar();
 
-                // Таргетить ближайшего игрока
                 if (tick % 2 == 0) {
                     retarget();
                 }
 
-                // Морозный Шторм — каждые 20 сек
                 if (tick % 20 == 0) {
                     frostStorm();
                 }
 
-                // AoE замедление — каждые 5 сек
                 if (tick % 5 == 0) {
                     iceSlam();
                 }
 
-                // Фаза щита — при 30% HP
                 if (!phaseTriggered && entity.getHealth() <= 150) {
                     iceShield();
                     phaseTriggered = true;
@@ -113,11 +106,9 @@ public class FrostGolem {
         bossBar.progress(progress);
 
         int currentHp = (int) Math.ceil(entity.getHealth());
-        bossBar.name(Component.text("❄ Ледяной Голем ", NamedTextColor.AQUA)
-                .decorate(TextDecoration.BOLD)
-                .append(Component.text("[" + currentHp + "/" + (int)maxHealth + " ❤]", NamedTextColor.WHITE)));
+        bossBar.name(TextUtil.parse("<gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("Ледяной Голем") + "</b></gradient> " +
+                "<dark_gray>[</dark_gray><#ff5858>" + currentHp + "</#ff5858><gray>/</gray><#ff5858>" + (int)maxHealth + " ❤</#ff5858><dark_gray>]</dark_gray>"));
 
-        // Показ игрокам в радиусе 60 блоков
         Location loc = entity.getLocation();
         for (Player p : loc.getWorld().getPlayers()) {
             if (p.getLocation().distanceSquared(loc) <= 3600) {
@@ -148,7 +139,7 @@ public class FrostGolem {
         World world = loc.getWorld();
 
         for (Player p : world.getNearbyPlayers(loc, 30)) {
-            p.sendMessage(Component.text("❄ Ледяной Голем вызывает Морозный Шторм!", NamedTextColor.AQUA));
+            p.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#00f2fe:#4facfe>" + TextUtil.toSmallCaps("Ледяной Голем вызывает Морозный Шторм!") + "</gradient>"));
         }
 
         for (int angle = 0; angle < 360; angle += 15) {
@@ -186,7 +177,7 @@ public class FrostGolem {
         entity.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 600, 1));
 
         for (Player p : world.getNearbyPlayers(loc, 30)) {
-            p.sendMessage(Component.text("❄ Ледяной Голем активирует Ледяной Щит!", NamedTextColor.RED));
+            p.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ff416c:#ff4b2b><b>" + TextUtil.toSmallCaps("Ледяной Голем активирует Ледяной Щит!") + "</b></gradient>"));
         }
 
         for (int i = 0; i < 4; i++) {
@@ -195,7 +186,7 @@ public class FrostGolem {
             );
             spawnLoc.setY(world.getHighestBlockYAt(spawnLoc) + 1);
             world.spawn(spawnLoc, Snowman.class, snowman -> {
-                snowman.customName(Component.text("Мини-Голем", NamedTextColor.WHITE));
+                snowman.customName(TextUtil.parse("<white>" + TextUtil.toSmallCaps("Мини-Голем") + "</white>"));
                 snowman.setCustomNameVisible(true);
                 Objects.requireNonNull(snowman.getAttribute(Attribute.MAX_HEALTH)).setBaseValue(40);
                 snowman.setHealth(40);

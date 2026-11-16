@@ -2,8 +2,6 @@ package tech.magoff.boss;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
@@ -14,6 +12,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import tech.magoff.theweeek;
+import tech.magoff.util.TextUtil;
 
 import java.util.*;
 
@@ -30,7 +29,7 @@ public class BlizzardQueen {
         this.plugin = plugin;
         this.entity = entity;
         this.bossBar = BossBar.bossBar(
-                Component.text("🌨 Королева Метели", NamedTextColor.DARK_AQUA).decorate(TextDecoration.BOLD),
+                TextUtil.parse("<gradient:#b176ff:#e0c3fc><b>🌨 " + TextUtil.toSmallCaps("Королева Метели") + "</b></gradient>"),
                 1.0f,
                 BossBar.Color.PURPLE,
                 BossBar.Overlay.NOTCHED_10
@@ -42,7 +41,7 @@ public class BlizzardQueen {
         World world = location.getWorld();
 
         Stray stray = world.spawn(location, Stray.class, e -> {
-            e.customName(Component.text("🌨 Королева Метели", NamedTextColor.DARK_AQUA).decorate(TextDecoration.BOLD));
+            e.customName(TextUtil.parse("<gradient:#b176ff:#e0c3fc><b>🌨 " + TextUtil.toSmallCaps("Королева Метели") + "</b></gradient>"));
             e.setCustomNameVisible(true);
 
             Objects.requireNonNull(e.getAttribute(Attribute.MAX_HEALTH)).setBaseValue(350);
@@ -91,26 +90,20 @@ public class BlizzardQueen {
                 }
 
                 tick++;
-
-                // Обновление BossBar
                 updateBossBar();
 
-                // Таргетить
                 if (tick % 2 == 0) {
                     retarget();
                 }
 
-                // Метель — каждые 15 сек
                 if (tick % 15 == 0) {
                     blizzard();
                 }
 
-                // Ледяные Копья — каждые 10 сек
                 if (tick % 10 == 0) {
                     iceSpears();
                 }
 
-                // Фаза Шторма — при 50% HP
                 if (!phaseTriggered && entity.getHealth() <= 175) {
                     stormPhase();
                     phaseTriggered = true;
@@ -126,9 +119,8 @@ public class BlizzardQueen {
         bossBar.progress(progress);
 
         int currentHp = (int) Math.ceil(entity.getHealth());
-        bossBar.name(Component.text("🌨 Королева Метели ", NamedTextColor.DARK_AQUA)
-                .decorate(TextDecoration.BOLD)
-                .append(Component.text("[" + currentHp + "/" + (int)maxHealth + " ❤]", NamedTextColor.WHITE)));
+        bossBar.name(TextUtil.parse("<gradient:#b176ff:#e0c3fc><b>🌨 " + TextUtil.toSmallCaps("Королева Метели") + "</b></gradient> " +
+                "<dark_gray>[</dark_gray><#ff5858>" + currentHp + "</#ff5858><gray>/</gray><#ff5858>" + (int)maxHealth + " ❤</#ff5858><dark_gray>]</dark_gray>"));
 
         Location loc = entity.getLocation();
         for (Player p : loc.getWorld().getPlayers()) {
@@ -160,7 +152,7 @@ public class BlizzardQueen {
         World world = loc.getWorld();
 
         for (Player p : world.getNearbyPlayers(loc, 30)) {
-            p.sendMessage(Component.text("🌨 Королева Метели вызывает Метель!", NamedTextColor.DARK_AQUA));
+            p.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#b176ff:#e0c3fc>" + TextUtil.toSmallCaps("Королева Метели вызывает снежный буран!") + "</gradient>"));
         }
 
         for (Player p : world.getNearbyPlayers(loc, 12)) {
@@ -207,7 +199,7 @@ public class BlizzardQueen {
         World world = loc.getWorld();
 
         for (Player p : world.getNearbyPlayers(loc, 30)) {
-            p.sendMessage(Component.text("🌨 Королева Метели входит в Фазу Шторма!", NamedTextColor.RED));
+            p.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ff416c:#ff4b2b><b>" + TextUtil.toSmallCaps("Королева Метели входит в фазу шторма!") + "</b></gradient>"));
         }
 
         for (int i = 0; i < 3; i++) {
@@ -217,7 +209,7 @@ public class BlizzardQueen {
             decoyLoc.setY(world.getHighestBlockYAt(decoyLoc) + 1);
 
             ArmorStand decoy = world.spawn(decoyLoc, ArmorStand.class, as -> {
-                as.customName(Component.text("🌨 Королева Метели", NamedTextColor.DARK_AQUA).decorate(TextDecoration.BOLD));
+                as.customName(TextUtil.parse("<gradient:#b176ff:#e0c3fc><b>🌨 " + TextUtil.toSmallCaps("Королева Метели") + "</b></gradient>"));
                 as.setCustomNameVisible(true);
                 as.setGravity(false);
                 as.setVisible(true);

@@ -1,8 +1,6 @@
 package tech.magoff.listeners;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -14,7 +12,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import tech.magoff.boss.BossManager;
@@ -23,6 +20,7 @@ import tech.magoff.event.FrostChest;
 import tech.magoff.event.FrostSiegeEvent;
 import tech.magoff.loot.FrostItems;
 import tech.magoff.theweeek;
+import tech.magoff.util.TextUtil;
 
 public class EventListener implements Listener {
 
@@ -36,22 +34,18 @@ public class EventListener implements Listener {
         this.eventManager = eventManager;
     }
 
-    // ============ Смерть босса ============
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
 
         if (!bossManager.isBoss(entity.getUniqueId())) return;
 
-        // Отменяем стандартный дроп
         event.getDrops().clear();
         event.setDroppedExp(0);
 
-        // Обработка через BossManager
         bossManager.onBossDeath(entity.getUniqueId(), entity.getLocation());
     }
 
-    // ============ Открытие сундука ивента ============
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -71,23 +65,20 @@ public class EventListener implements Listener {
         Player player = event.getPlayer();
 
         if (frostChest.isLooted()) {
-            player.sendMessage(Component.text("❄ Сундук уже был разграблен!", NamedTextColor.GRAY));
+            player.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gray>" + TextUtil.toSmallCaps("Сундук уже был разграблен другими искателями приключений!") + "</gray>"));
             event.setCancelled(true);
             return;
         }
 
         if (!frostChest.isUnlocked()) {
-            player.sendMessage(Component.text("❄ Сундук ещё заморожен! Дождитесь окончания таймера.", NamedTextColor.RED));
+            player.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ff416c:#ff4b2b>" + TextUtil.toSmallCaps("Сундук скован древним льдом! Дождитесь разморозки.") + "</gradient>"));
             event.setCancelled(true);
             return;
         }
 
-        // Сундук открыт! Помечаем как разграбленный после того, как игрок его откроет
-        // Позволяем открыть (не отменяем event), но помечаем
         frostChest.setLooted(player);
     }
 
-    // ============ Кулак Мороза — замедление при ударе ============
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
@@ -95,16 +86,14 @@ public class EventListener implements Listener {
 
         var weapon = player.getInventory().getItemInMainHand();
         if (FrostItems.isFrostItem(weapon, "fist_of_frost")) {
-            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 2)); // 3 сек, Slowness III
+            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 2));
         }
 
         if (FrostItems.isFrostItem(weapon, "blizzard_bow")) {
-            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 1)); // 4 сек, Slowness II
+            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 1));
         }
     }
 
-    // ============ Корона Метели — аура замедления ============
-    // Вызывается через отдельный таймер в главном классе
     public static void tickBlizzardCrown(Player player) {
         var helmet = player.getInventory().getHelmet();
         if (FrostItems.isFrostItem(helmet, "blizzard_crown")) {

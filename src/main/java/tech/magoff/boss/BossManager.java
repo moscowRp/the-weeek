@@ -1,27 +1,23 @@
 package tech.magoff.boss;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import tech.magoff.loot.LootTable;
 import tech.magoff.theweeek;
+import tech.magoff.util.TextUtil;
 
 import java.util.*;
 
 public class BossManager {
 
     private final theweeek plugin;
-    private final Map<UUID, Object> activeBosses = new HashMap<>(); // UUID → boss instance
+    private final Map<UUID, Object> activeBosses = new HashMap<>();
 
     public BossManager(theweeek plugin) {
         this.plugin = plugin;
     }
 
-    /**
-     * Спавнит случайного босса рядом с игроком.
-     */
     public void spawnRandomBoss(Location location) {
         Random random = new Random();
         int type = random.nextInt(3);
@@ -37,7 +33,7 @@ public class BossManager {
         FrostGolem boss = FrostGolem.spawn(location);
         activeBosses.put(boss.getEntity().getUniqueId(), boss);
 
-        announceNearby(location, Component.text("❄ Ледяной Голем пробудился!", NamedTextColor.AQUA));
+        announceNearby(location, TextUtil.parse(TextUtil.prefix() + "<gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("Ледяной Голем пробудился!") + "</b></gradient>"));
         plugin.getLogger().info("Ледяной Голем заспавнен на " + formatLoc(location));
     }
 
@@ -45,7 +41,7 @@ public class BossManager {
         DarkSanta boss = DarkSanta.spawn(location);
         activeBosses.put(boss.getEntity().getUniqueId(), boss);
 
-        announceNearby(location, Component.text("🎅 Тёмный Санта появился!", NamedTextColor.DARK_RED));
+        announceNearby(location, TextUtil.parse(TextUtil.prefix() + "<gradient:#ff0844:#ffb199><b>🎅 " + TextUtil.toSmallCaps("Тёмный Санта появился!") + "</b></gradient>"));
         plugin.getLogger().info("Тёмный Санта заспавнен на " + formatLoc(location));
     }
 
@@ -53,20 +49,14 @@ public class BossManager {
         BlizzardQueen boss = BlizzardQueen.spawn(location);
         activeBosses.put(boss.getEntity().getUniqueId(), boss);
 
-        announceNearby(location, Component.text("🌨 Королева Метели появилась!", NamedTextColor.DARK_AQUA));
+        announceNearby(location, TextUtil.parse(TextUtil.prefix() + "<gradient:#b176ff:#e0c3fc><b>🌨 " + TextUtil.toSmallCaps("Королева Метели ступила на землю!") + "</b></gradient>"));
         plugin.getLogger().info("Королева Метели заспавнена на " + formatLoc(location));
     }
 
-    /**
-     * Проверяет, является ли моб боссом.
-     */
     public boolean isBoss(UUID entityId) {
         return activeBosses.containsKey(entityId);
     }
 
-    /**
-     * Получить тип босса по UUID сущности.
-     */
     public String getBossType(UUID entityId) {
         Object boss = activeBosses.get(entityId);
         if (boss instanceof FrostGolem) return "frost_golem";
@@ -75,9 +65,6 @@ public class BossManager {
         return null;
     }
 
-    /**
-     * Вызвать при смерти босса — дропает лут.
-     */
     public void onBossDeath(UUID entityId, Location deathLocation) {
         Object boss = activeBosses.remove(entityId);
         if (boss == null) return;
@@ -99,29 +86,22 @@ public class BossManager {
             bossName = "Королева Метели";
         }
 
-        // Дроп лута
         if (bossType != null) {
             var loot = LootTable.generateBossLoot(bossType);
             for (var item : loot) {
                 deathLocation.getWorld().dropItemNaturally(deathLocation, item);
             }
 
-            // Опыт
             deathLocation.getWorld().spawn(deathLocation, org.bukkit.entity.ExperienceOrb.class, orb -> {
                 orb.setExperience(500 + new Random().nextInt(500));
             });
         }
 
-        // Объявление
-        String finalBossName = bossName;
         for (Player p : deathLocation.getWorld().getPlayers()) {
-            p.sendMessage(Component.text("☠ " + finalBossName + " повержен!", NamedTextColor.GOLD));
+            p.sendMessage(TextUtil.parse(TextUtil.prefix() + "<gradient:#ffd200:#f7971e><b>☠ " + TextUtil.toSmallCaps(bossName + " повержен!") + "</b></gradient>"));
         }
     }
 
-    /**
-     * Очищает всех боссов (при остановке ивента).
-     */
     public void cleanupAll() {
         for (Object boss : activeBosses.values()) {
             if (boss instanceof FrostGolem fg) fg.cleanup();
@@ -131,9 +111,6 @@ public class BossManager {
         activeBosses.clear();
     }
 
-    /**
-     * Проверяет, все ли боссы мертвы.
-     */
     public boolean allBossesDead() {
         activeBosses.entrySet().removeIf(entry -> {
             Object boss = entry.getValue();

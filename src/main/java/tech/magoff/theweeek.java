@@ -51,7 +51,7 @@ public final class theweeek extends JavaPlugin {
         // Запуск автотаймера ивентов
         eventManager.startAutoTimer();
 
-        getLogger().info("WinterClash успешно включен!");
+        getLogger().info("WINTER CLASH VER 1488 CODER SMAZZI IZIZIZIZIZIZIIZ JKLJKLKFJ I PIDOR HAHAHA YOU CRACKED 101010101010101010101010101010");
     }
 
     @Override
@@ -68,7 +68,7 @@ public final class theweeek extends JavaPlugin {
             bossManager.cleanupAll();
         }
 
-        getLogger().info("WinterClash выключен!");
+        getLogger().info("WinterClash упал((((((");
     }
 
     public static theweeek getInstance() {

@@ -1,8 +1,6 @@
 package tech.magoff.event;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -10,6 +8,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import tech.magoff.boss.BossManager;
 import tech.magoff.theweeek;
+import tech.magoff.util.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,12 +24,10 @@ public class FrostSiegeEvent {
     private boolean active = false;
     private BukkitRunnable mainTask;
     private int tickCounter = 0;
-    private final int maxDuration = 1200; // 20 мин в секундах
+    private final int maxDuration = 1200;
 
-    // Сохраняем оригинальное состояние мира
     private boolean originalStorm;
     private boolean originalThundering;
-    private long originalTime;
 
     public FrostSiegeEvent(theweeek plugin, BossManager bossManager) {
         this.plugin = plugin;
@@ -41,64 +38,58 @@ public class FrostSiegeEvent {
         return active;
     }
 
-    /**
-     * Запуск ивента.
-     */
     public void start() {
         if (active) return;
         active = true;
         tickCounter = 0;
 
-        World world = Bukkit.getWorlds().get(0); // Основной мир
+        World world = Bukkit.getWorlds().get(0);
 
-        // Сохраняем состояние
         originalStorm = world.hasStorm();
         originalThundering = world.isThundering();
-        originalTime = world.getTime();
 
-        // Фаза предупреждения
-        announceAll(Component.text("═══════════════════════════════", NamedTextColor.DARK_AQUA));
-        announceAll(Component.text("❄ ВЕЧНАЯ ЗИМА НАДВИГАЕТСЯ...", NamedTextColor.AQUA).decorate(TextDecoration.BOLD));
-        announceAll(Component.text("Готовьтесь! Ивент начнётся через 30 секунд!", NamedTextColor.GRAY));
-        announceAll(Component.text("═══════════════════════════════", NamedTextColor.DARK_AQUA));
+        announceAll(Component.empty());
+        announceAll(TextUtil.parse("<dark_gray>╭────────────────────────────────────────╮</dark_gray>"));
+        announceAll(TextUtil.parse("   <gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("ВЕЧНАЯ ЗИМА НАДВИГАЕТСЯ...") + "</b></gradient>"));
+        announceAll(TextUtil.parse("   <gray>" + TextUtil.toSmallCaps("Холодный фронт охватит мир через 30 секунд!") + "</gray>"));
+        announceAll(TextUtil.parse("   <gray>" + TextUtil.toSmallCaps("Приготовьте снаряжение к ледяной осаде.") + "</gray>"));
+        announceAll(TextUtil.parse("<dark_gray>╰────────────────────────────────────────╯</dark_gray>"));
+        announceAll(Component.empty());
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.7f, 0.5f);
         }
 
-        // Через 30 сек — начало
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (!active) return;
                 beginEvent(world);
             }
-        }.runTaskLater(plugin, 600L); // 30 сек
+        }.runTaskLater(plugin, 600L);
     }
 
     private void beginEvent(World world) {
-        // Погода
         world.setStorm(true);
         world.setThundering(true);
         world.setWeatherDuration(maxDuration * 20);
-        world.setTime(18000); // Ночь
 
-        announceAll(Component.text("❄ ВЕЧНАЯ ЗИМА НАЧАЛАСЬ!", NamedTextColor.AQUA).decorate(TextDecoration.BOLD));
+        announceAll(Component.empty());
+        announceAll(TextUtil.parse("<gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("ВЕЧНАЯ ЗИМА ОХВАТИЛА МИР!") + "</b></gradient>"));
+        announceAll(TextUtil.parse("<gray>" + TextUtil.toSmallCaps("Ищите сундук и уничтожайте боссов, пока не поздно!") + "</gray>"));
+        announceAll(Component.empty());
 
-        // Спавн сундука
         frostChest = new FrostChest(plugin);
         frostChest.spawn(world);
 
-        // Спавн боссов через 10 сек после начала
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (!active) return;
                 spawnBosses(world);
             }
-        }.runTaskLater(plugin, 200L); // 10 сек
+        }.runTaskLater(plugin, 200L);
 
-        // Основной тикер ивента
         mainTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -109,41 +100,32 @@ public class FrostSiegeEvent {
 
                 tickCounter++;
 
-                // Глобальные эффекты каждые 10 сек
                 if (tickCounter % 10 == 0) {
                     applyGlobalEffects(world);
                 }
 
-                // Спавн усиленных мобов каждые 45 сек
                 if (tickCounter % 45 == 0) {
                     spawnWinterMobs(world);
                 }
 
-                // Держать ночь
-                world.setTime(18000);
-
-                // Проверка условий окончания
                 if (checkEndConditions()) {
                     endEvent(true);
                     cancel();
                     return;
                 }
 
-                // Таймаут
                 if (tickCounter >= maxDuration) {
                     endEvent(false);
                     cancel();
                 }
 
-                // Объявления каждые 5 минут
                 if (tickCounter % 300 == 0) {
                     int minutesLeft = (maxDuration - tickCounter) / 60;
-                    announceAll(Component.text("❄ Вечная Зима: осталось " + minutesLeft + " мин. Боссов в живых: "
-                            + bossManager.getActiveBossCount(), NamedTextColor.AQUA));
+                    announceAll(TextUtil.parse(TextUtil.prefix() + "<gradient:#00f2fe:#4facfe>" + TextUtil.toSmallCaps("До конца Зимы:") + "</gradient> <#ffd200><b>" + minutesLeft + " " + TextUtil.toSmallCaps("мин") + "</b></#ffd200> <dark_gray>•</dark_gray> <gray>" + TextUtil.toSmallCaps("Боссов в живых:") + "</gray> <#ff4b2b><b>" + bossManager.getActiveBossCount() + "</b></#ff4b2b>"));
                 }
             }
         };
-        mainTask.runTaskTimer(plugin, 20L, 20L); // каждую секунду
+        mainTask.runTaskTimer(plugin, 20L, 20L);
     }
 
     private void spawnBosses(World world) {
@@ -153,7 +135,6 @@ public class FrostSiegeEvent {
         Collections.shuffle(players);
         Random random = new Random();
 
-        // Спавним 1-3 босса (зависит от кол-ва игроков)
         int bossCount = Math.min(3, Math.max(1, players.size() / 3));
 
         for (int i = 0; i < bossCount; i++) {
@@ -171,18 +152,14 @@ public class FrostSiegeEvent {
 
     private void applyGlobalEffects(World world) {
         for (Player p : world.getPlayers()) {
-            // Slowness I от холода (если нет иммунитета)
             if (!hasWinterImmunity(p)) {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 220, 0, true, false));
             }
-
-            // Частицы снега
             p.spawnParticle(Particle.SNOWFLAKE, p.getLocation().add(0, 3, 0), 20, 5, 2, 5, 0.01);
         }
     }
 
     private boolean hasWinterImmunity(Player player) {
-        // Проверка Сердца Зимы в инвентаре
         for (var item : player.getInventory().getContents()) {
             if (tech.magoff.loot.FrostItems.isFrostItem(item, "heart_of_winter")) {
                 return true;
@@ -194,7 +171,6 @@ public class FrostSiegeEvent {
     private void spawnWinterMobs(World world) {
         Random random = new Random();
         for (Player p : world.getPlayers()) {
-            // 2-3 моба рядом с каждым игроком
             int count = 2 + random.nextInt(2);
             for (int i = 0; i < count; i++) {
                 Location spawnLoc = p.getLocation().add(
@@ -206,13 +182,13 @@ public class FrostSiegeEvent {
 
                 if (random.nextBoolean()) {
                     world.spawn(spawnLoc, org.bukkit.entity.Stray.class, stray -> {
-                        stray.customName(Component.text("Зимний Скелет", NamedTextColor.AQUA));
+                        stray.customName(TextUtil.parse("<#70a1ff>" + TextUtil.toSmallCaps("Зимний Скелет") + "</#70a1ff>"));
                         stray.setCustomNameVisible(true);
                         stray.getEquipment().setHelmet(new org.bukkit.inventory.ItemStack(Material.CHAINMAIL_HELMET));
                     });
                 } else {
                     world.spawn(spawnLoc, org.bukkit.entity.Skeleton.class, skel -> {
-                        skel.customName(Component.text("Ледяной Стрелок", NamedTextColor.AQUA));
+                        skel.customName(TextUtil.parse("<#70a1ff>" + TextUtil.toSmallCaps("Ледяной Стрелок") + "</#70a1ff>"));
                         skel.setCustomNameVisible(true);
                         skel.getEquipment().setHelmet(new org.bukkit.inventory.ItemStack(Material.IRON_HELMET));
                         skel.getEquipment().setItemInMainHand(new org.bukkit.inventory.ItemStack(Material.BOW));
@@ -228,48 +204,44 @@ public class FrostSiegeEvent {
         return bossesDefeated && chestLooted;
     }
 
-    /**
-     * Окончание ивента.
-     */
     public void endEvent(boolean victory) {
         if (!active) return;
         active = false;
 
         World world = Bukkit.getWorlds().get(0);
 
-        // Восстановить мир
         world.setStorm(originalStorm);
         world.setThundering(originalThundering);
-        world.setTime(originalTime);
 
-        // Остановить таски
         if (mainTask != null && !mainTask.isCancelled()) {
             mainTask.cancel();
         }
 
-        // Очистить боссов
         bossManager.cleanupAll();
 
-        // Очистить сундук (если не забран)
         if (frostChest != null) {
             frostChest.cleanup();
         }
 
-        // Объявление
         if (victory) {
-            announceAll(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
-            announceAll(Component.text("🏆 ВЕЧНАЯ ЗИМА ПОБЕЖДЕНА!", NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
-            announceAll(Component.text("Все боссы повержены! Мир спасён!", NamedTextColor.YELLOW));
-            announceAll(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+            announceAll(Component.empty());
+            announceAll(TextUtil.parse("<dark_gray>╭────────────────────────────────────────╮</dark_gray>"));
+            announceAll(TextUtil.parse("   <gradient:#43e97b:#38f9d7><b>🏆 " + TextUtil.toSmallCaps("ВЕЧНАЯ ЗИМА ОТСТУПИЛА!") + "</b></gradient>"));
+            announceAll(TextUtil.parse("   <gray>" + TextUtil.toSmallCaps("Все ледяные боссы повержены, а сундук открыт!") + "</gray>"));
+            announceAll(TextUtil.parse("   <gradient:#ffd200:#f7971e><b>" + TextUtil.toSmallCaps("Мир спасен от вечной мерзлоты!") + "</b></gradient>"));
+            announceAll(TextUtil.parse("<dark_gray>╰────────────────────────────────────────╯</dark_gray>"));
+            announceAll(Component.empty());
 
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
             }
         } else {
-            announceAll(Component.text("═══════════════════════════════", NamedTextColor.RED));
-            announceAll(Component.text("💀 ВЕЧНАЯ ЗИМА ПОБЕДИЛА!", NamedTextColor.RED).decorate(TextDecoration.BOLD));
-            announceAll(Component.text("Время вышло... Зима отступает, но вернётся.", NamedTextColor.GRAY));
-            announceAll(Component.text("═══════════════════════════════", NamedTextColor.RED));
+            announceAll(Component.empty());
+            announceAll(TextUtil.parse("<dark_gray>╭────────────────────────────────────────╮</dark_gray>"));
+            announceAll(TextUtil.parse("   <gradient:#ff416c:#ff4b2b><b>💀 " + TextUtil.toSmallCaps("ВЕЧНАЯ ЗИМА ПОБЕДИЛА") + "</b></gradient>"));
+            announceAll(TextUtil.parse("   <gray>" + TextUtil.toSmallCaps("Время вышло... Мороз отступает, но он вернется.") + "</gray>"));
+            announceAll(TextUtil.parse("<dark_gray>╰────────────────────────────────────────╯</dark_gray>"));
+            announceAll(Component.empty());
 
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.playSound(p.getLocation(), Sound.ENTITY_WITHER_DEATH, 0.7f, 0.5f);
@@ -277,9 +249,6 @@ public class FrostSiegeEvent {
         }
     }
 
-    /**
-     * Принудительная остановка (команда админа).
-     */
     public void forceStop() {
         endEvent(false);
     }

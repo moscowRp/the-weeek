@@ -1,8 +1,6 @@
 package tech.magoff.loot;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -10,6 +8,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import tech.magoff.theweeek;
 import tech.magoff.util.ItemBuilder;
+import tech.magoff.util.TextUtil;
 
 public class FrostItems {
 
@@ -20,14 +19,14 @@ public class FrostItems {
     // ============ Осколок Вечной Зимы ============
     public static ItemStack frostShard() {
         return new ItemBuilder(Material.PRISMARINE_SHARD)
-                .name(Component.text("❄ Осколок Вечной Зимы", NamedTextColor.AQUA).decorate(TextDecoration.BOLD))
+                .name(TextUtil.parse("<gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("Осколок Вечной Зимы") + "</b></gradient>"))
                 .lore(
-                        Component.text("Осколок древней зимней силы", NamedTextColor.GRAY),
+                        TextUtil.parse("<gray>" + TextUtil.toSmallCaps("Осколок древней ледяной силы.") + "</gray>"),
                         Component.empty(),
-                        Component.text("Собери 3 → Сердце Зимы", NamedTextColor.DARK_AQUA),
-                        Component.text("Собери 5 → Корона Метели", NamedTextColor.DARK_AQUA),
+                        TextUtil.parse("<#4facfe>✦ <gray>" + TextUtil.toSmallCaps("Собери 3") + " <dark_gray>→</dark_gray> <gradient:#00f2fe:#4facfe>" + TextUtil.toSmallCaps("Сердце Зимы") + "</gradient>"),
+                        TextUtil.parse("<#4facfe>✦ <gray>" + TextUtil.toSmallCaps("Собери 5") + " <dark_gray>→</dark_gray> <gradient:#b176ff:#e0c3fc>" + TextUtil.toSmallCaps("Корона Метели") + "</gradient>"),
                         Component.empty(),
-                        Component.text("✦ ЛЕГЕНДАРНЫЙ", NamedTextColor.GOLD)
+                        TextUtil.parse("<gradient:#ffd200:#f7971e><b>✦ " + TextUtil.toSmallCaps("ЛЕГЕНДАРНЫЙ РЕСУРС") + "</b></gradient>")
                 )
                 .persistentData(key("frost_item"), "frost_shard")
                 .glowing()
@@ -37,14 +36,16 @@ public class FrostItems {
     // ============ Сердце Зимы ============
     public static ItemStack heartOfWinter() {
         return new ItemBuilder(Material.HEART_OF_THE_SEA)
-                .name(Component.text("❄ Сердце Зимы", NamedTextColor.DARK_AQUA).decorate(TextDecoration.BOLD))
+                .name(TextUtil.parse("<gradient:#43e97b:#38f9d7><b>❄ " + TextUtil.toSmallCaps("Сердце Зимы") + "</b></gradient>"))
                 .lore(
-                        Component.text("Frost Walker II + иммунитет", NamedTextColor.GRAY),
-                        Component.text("к замедлению от ивентов", NamedTextColor.GRAY),
+                        TextUtil.parse("<gray>" + TextUtil.toSmallCaps("Пульсирующее ядро вечного мороза.") + "</gray>"),
                         Component.empty(),
-                        Component.text("Держи в руке для эффекта", NamedTextColor.GREEN),
+                        TextUtil.parse("<#38f9d7>▪ <gray>" + TextUtil.toSmallCaps("Frost Walker II при ходьбе") + "</gray>"),
+                        TextUtil.parse("<#38f9d7>▪ <gray>" + TextUtil.toSmallCaps("Иммунитет к замедлению от метели") + "</gray>"),
                         Component.empty(),
-                        Component.text("✦ МИФИЧЕСКИЙ", NamedTextColor.LIGHT_PURPLE)
+                        TextUtil.parse("<dark_gray>[" + TextUtil.toSmallCaps("Держи в инвентаре для работы") + "]</dark_gray>"),
+                        Component.empty(),
+                        TextUtil.parse("<gradient:#f857a6:#ff5858><b>✦ " + TextUtil.toSmallCaps("МИФИЧЕСКИЙ АРТЕФАКТ") + "</b></gradient>")
                 )
                 .persistentData(key("frost_item"), "heart_of_winter")
                 .glowing()
@@ -54,12 +55,14 @@ public class FrostItems {
     // ============ Корона Метели ============
     public static ItemStack blizzardCrown() {
         return new ItemBuilder(Material.DIAMOND_HELMET)
-                .name(Component.text("❄ Корона Метели", NamedTextColor.AQUA).decorate(TextDecoration.BOLD))
+                .name(TextUtil.parse("<gradient:#b176ff:#e0c3fc><b>❄ " + TextUtil.toSmallCaps("Корона Метели") + "</b></gradient>"))
                 .lore(
-                        Component.text("Враги в радиусе 8 блоков", NamedTextColor.GRAY),
-                        Component.text("получают Slowness II", NamedTextColor.GRAY),
+                        TextUtil.parse("<gray>" + TextUtil.toSmallCaps("Корона владычицы вечных льдов.") + "</gray>"),
                         Component.empty(),
-                        Component.text("✦ МИФИЧЕСКИЙ", NamedTextColor.LIGHT_PURPLE)
+                        TextUtil.parse("<#b176ff>▪ <gray>" + TextUtil.toSmallCaps("Аура: Враги в радиусе 8 блоков") + "</gray>"),
+                        TextUtil.parse("  <gray>" + TextUtil.toSmallCaps("получают постоянный эффект") + " <#00f2fe>" + TextUtil.toSmallCaps("Slowness II") + "</#00f2fe></gray>"),
+                        Component.empty(),
+                        TextUtil.parse("<gradient:#f857a6:#ff5858><b>✦ " + TextUtil.toSmallCaps("МИФИЧЕСКИЙ РЕЛИКТ") + "</b></gradient>")
                 )
                 .persistentData(key("frost_item"), "blizzard_crown")
                 .enchant("protection", 5)
@@ -72,13 +75,15 @@ public class FrostItems {
     // ============ Кулак Мороза (лут Голема) ============
     public static ItemStack fistOfFrost() {
         return new ItemBuilder(Material.MACE)
-                .name(Component.text("❄ Кулак Мороза", NamedTextColor.AQUA).decorate(TextDecoration.BOLD))
+                .name(TextUtil.parse("<gradient:#00f2fe:#4facfe><b>❄ " + TextUtil.toSmallCaps("Кулак Мороза") + "</b></gradient>"))
                 .lore(
-                        Component.text("Slowness III при ударе — 3 сек", NamedTextColor.GRAY),
+                        TextUtil.parse("<gray>" + TextUtil.toSmallCaps("Выкован из ледяных глыб Ледяного Голема.") + "</gray>"),
                         Component.empty(),
-                        Component.text("Дроп: Ледяной Голем", NamedTextColor.DARK_GRAY),
+                        TextUtil.parse("<#00f2fe>▪ <gray>" + TextUtil.toSmallCaps("Накладывает") + " <#4facfe>" + TextUtil.toSmallCaps("Slowness III") + "</#4facfe> <gray>" + TextUtil.toSmallCaps("на 3 сек") + "</gray>"),
                         Component.empty(),
-                        Component.text("✦ ЛЕГЕНДАРНЫЙ", NamedTextColor.GOLD)
+                        TextUtil.parse("<dark_gray>" + TextUtil.toSmallCaps("Дроп: Ледяной Голем") + "</dark_gray>"),
+                        Component.empty(),
+                        TextUtil.parse("<gradient:#ffd200:#f7971e><b>✦ " + TextUtil.toSmallCaps("ЛЕГЕНДАРНОЕ ОРУЖИЕ") + "</b></gradient>")
                 )
                 .persistentData(key("frost_item"), "fist_of_frost")
                 .enchant("sharpness", 6)
@@ -90,13 +95,15 @@ public class FrostItems {
     // ============ Лук Вьюги (лут Королевы) ============
     public static ItemStack blizzardBow() {
         return new ItemBuilder(Material.BOW)
-                .name(Component.text("❄ Лук Вьюги", NamedTextColor.AQUA).decorate(TextDecoration.BOLD))
+                .name(TextUtil.parse("<gradient:#667eea:#764ba2><b>❄ " + TextUtil.toSmallCaps("Лук Вьюги") + "</b></gradient>"))
                 .lore(
-                        Component.text("Slowness II при попадании — 4 сек", NamedTextColor.GRAY),
+                        TextUtil.parse("<gray>" + TextUtil.toSmallCaps("Стрелы пронзают воздух ледяным холодом.") + "</gray>"),
                         Component.empty(),
-                        Component.text("Дроп: Королева Метели", NamedTextColor.DARK_GRAY),
+                        TextUtil.parse("<#667eea>▪ <gray>" + TextUtil.toSmallCaps("Стрелы накладывают") + " <#764ba2>" + TextUtil.toSmallCaps("Slowness II") + "</#764ba2> <gray>" + TextUtil.toSmallCaps("на 4 сек") + "</gray>"),
                         Component.empty(),
-                        Component.text("✦ ЛЕГЕНДАРНЫЙ", NamedTextColor.GOLD)
+                        TextUtil.parse("<dark_gray>" + TextUtil.toSmallCaps("Дроп: Королева Метели") + "</dark_gray>"),
+                        Component.empty(),
+                        TextUtil.parse("<gradient:#ffd200:#f7971e><b>✦ " + TextUtil.toSmallCaps("ЛЕГЕНДАРНОЕ ОРУЖИЕ") + "</b></gradient>")
                 )
                 .persistentData(key("frost_item"), "blizzard_bow")
                 .enchant("infinity", 1)
@@ -109,20 +116,19 @@ public class FrostItems {
     // ============ Мешок Санты (лут Санты) ============
     public static ItemStack santaBag() {
         return new ItemBuilder(Material.RED_SHULKER_BOX)
-                .name(Component.text("🎁 Мешок Санты", NamedTextColor.RED).decorate(TextDecoration.BOLD))
+                .name(TextUtil.parse("<gradient:#ff0844:#ffb199><b>🎁 " + TextUtil.toSmallCaps("Мешок Санты") + "</b></gradient>"))
                 .lore(
-                        Component.text("Содержит случайные ценности", NamedTextColor.GRAY),
+                        TextUtil.parse("<gray>" + TextUtil.toSmallCaps("Набит редкими новогодними сокровищами.") + "</gray>"),
                         Component.empty(),
-                        Component.text("Дроп: Тёмный Санта", NamedTextColor.DARK_GRAY),
+                        TextUtil.parse("<dark_gray>" + TextUtil.toSmallCaps("Дроп: Тёмный Санта") + "</dark_gray>"),
                         Component.empty(),
-                        Component.text("✦ ЛЕГЕНДАРНЫЙ", NamedTextColor.GOLD)
+                        TextUtil.parse("<gradient:#ffd200:#f7971e><b>✦ " + TextUtil.toSmallCaps("ЛЕГЕНДАРНЫЙ СУНДУК") + "</b></gradient>")
                 )
                 .persistentData(key("frost_item"), "santa_bag")
                 .glowing()
                 .build();
     }
 
-    // ============ Проверка кастомного предмета ============
     public static boolean isFrostItem(ItemStack item, String id) {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
